@@ -1,0 +1,20 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# VS Code settings
+.vscode/
+
+# Env
+.env
+*.env
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Mac or Windows system files
+.DS_Store
+Thumbs.db
+
+venv/
+data/
