@@ -162,7 +162,6 @@ class VectorStoreManager:
         self._ensure_loaded()
         
         if score_threshold is not None:
-            # Use similarity search with score
             docs_with_scores = self.vector_store.similarity_search_with_score(query, k=k)
             return [doc for doc, score in docs_with_scores if score >= score_threshold]
         else:

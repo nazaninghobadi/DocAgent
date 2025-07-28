@@ -49,24 +49,19 @@ class SmartStudyAgent:
     def _initialize_agent(self) -> None:
         """Initialize the agent with tools and LLM."""
         try:
-            # Get LLM
             llm_provider = model_manager.get_llm(self.api_key, self.model_name)
             llm = llm_provider.get_chat_model()
             
-            # Setup tools
             tools = self._setup_tools()
             
-            # Create custom prompt
             prompt = self._create_prompt()
             
-            # Create ReAct agent
             agent = create_react_agent(
                 llm=llm,
                 tools=tools,
                 prompt=prompt
             )
             
-            # Create agent executor
             self.agent_executor = AgentExecutor(
                 agent=agent,
                 tools=tools,
@@ -227,7 +222,6 @@ Thought: {agent_scratchpad}
         logger.info("Agent cache cleared")
 
 
-# Helper functions for backward compatibility
 def build_agent(api_key: str) -> SmartStudyAgent:
     """
     Build a Smart Study Agent with default settings.

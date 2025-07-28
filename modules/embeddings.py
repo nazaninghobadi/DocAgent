@@ -42,15 +42,12 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
         self.batch_size = batch_size
         self.cache_folder = cache_folder
         
-        # Auto-detect device if not specified
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
         
-        # Initialize model
         self._initialize_model(max_seq_length)
         
-        # Text preprocessing patterns
         self._setup_preprocessing()
         
         logger.info(f"Initialized embedder: {model_name} on {device}")
@@ -65,11 +62,9 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
             
             self.model = SentenceTransformer(self.model_name, **model_kwargs)
             
-            # Set maximum sequence length if specified
             if max_seq_length:
                 self.model.max_seq_length = max_seq_length
             
-            # Enable model optimization for inference
             if hasattr(self.model, 'eval'):
                 self.model.eval()
                 
@@ -79,17 +74,15 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
 
     def _setup_preprocessing(self) -> None:
         """Setup text preprocessing patterns and rules."""
-        # Common patterns to clean
         self.cleaning_patterns = [
-            (r'\s+', ' '),  # Multiple whitespaces
-            (r'\n+', '\n'),  # Multiple newlines
-            (r'[^\w\s\.\,\!\?\:\;\-\(\)]', ''),  # Special characters (keep basic punctuation)
-            (r'\.{2,}', '...'),  # Multiple dots
-            (r'\?{2,}', '?'),  # Multiple question marks
-            (r'\!{2,}', '!'),  # Multiple exclamation marks
+            (r'\s+', ' '),  
+            (r'\n+', '\n'),  
+            (r'[^\w\s\.\,\!\?\:\;\-\(\)]', ''),  
+            (r'\.{2,}', '...'),  
+            (r'\?{2,}', '?'),  
+            (r'\!{2,}', '!'),  
         ]
         
-        # Academic/technical text patterns
         self.academic_patterns = [
             (r'\b(Fig\.|Figure|Table|Eq\.|Equation)\s*\d+', '[FIGURE_REF]'),
             (r'\[\d+\]', '[CITATION]'),
@@ -111,22 +104,17 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
         if not text or not text.strip():
             return ""
         
-        # Basic cleaning
         processed = text.strip()
         
-        # Apply academic patterns if requested
         if preserve_academic:
             for pattern, replacement in self.academic_patterns:
                 processed = re.sub(pattern, replacement, processed, flags=re.IGNORECASE)
         
-        # Apply cleaning patterns
         for pattern, replacement in self.cleaning_patterns:
             processed = re.sub(pattern, replacement, processed)
         
-        # Additional cleaning
         processed = processed.strip()
         
-        # Ensure minimum length
         if len(processed) < 10:
             logger.warning(f"Very short text after preprocessing: '{processed[:50]}...'")
         
@@ -180,7 +168,6 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
         
         logger.info(f"Embedding {len(texts)} documents")
         
-        # Preprocess texts
         processed_texts = []
         for i, text in enumerate(texts):
             try:
@@ -193,7 +180,6 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
                 logger.error(f"Preprocessing failed for document {i}: {str(e)}")
                 processed_texts.append(f"[ERROR_DOCUMENT_{i}]")
         
-        # Generate embeddings
         embeddings = self._batch_encode(
             processed_texts,
             show_progress=len(texts) > 10
@@ -215,10 +201,8 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
             logger.warning("Empty query provided")
             return [0.0] * self.get_embedding_dimension()
         
-        # Preprocess query (less aggressive than documents)
         processed = self._preprocess_text(text, preserve_academic=False)
         
-        # Generate embedding
         embedding = self._batch_encode([processed])
         
         return embedding[0].tolist()
@@ -236,13 +220,11 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
         if not queries:
             return []
         
-        # Preprocess queries
         processed_queries = [
             self._preprocess_text(query, preserve_academic=False) 
             for query in queries
         ]
         
-        # Generate embeddings
         embeddings = self._batch_encode(processed_queries)
         
         return embeddings.tolist()
@@ -283,7 +265,6 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
         emb1, emb2 = embeddings[0], embeddings[1]
         
         if method == 'cosine':
-            # Cosine similarity
             dot_product = np.dot(emb1, emb2)
             norm1 = np.linalg.norm(emb1)
             norm2 = np.linalg.norm(emb2)
@@ -291,7 +272,7 @@ class AdvancedHuggingFaceEmbedder(Embeddings):
         elif method == 'dot':
             return np.dot(emb1, emb2)
         elif method == 'euclidean':
-            return -np.linalg.norm(emb1 - emb2)  # Negative for similarity
+            return -np.linalg.norm(emb1 - emb2)  
         else:
             raise ValueError(f"Unknown similarity method: {method}")
 
@@ -359,7 +340,6 @@ class SmartEmbeddingGenerator:
                 analysis['empty_documents'] += 1
                 continue
             
-            # Detect content type
             if self._is_academic_content(content):
                 analysis['content_types']['academic'] += 1
             elif self._is_structured_content(content):
@@ -367,7 +347,6 @@ class SmartEmbeddingGenerator:
             else:
                 analysis['content_types']['general'] += 1
         
-        # Calculate statistics
         lengths = analysis['document_lengths']
         if lengths:
             analysis['avg_length'] = sum(lengths) / len(lengths)
@@ -375,7 +354,6 @@ class SmartEmbeddingGenerator:
             analysis['max_length'] = max(lengths)
             analysis['std_length'] = np.std(lengths)
         
-        # Generate recommendations
         analysis['recommendations'] = self._generate_recommendations(analysis)
         
         return analysis
@@ -396,10 +374,10 @@ class SmartEmbeddingGenerator:
     def _is_structured_content(self, content: str) -> bool:
         """Check if content is structured (headers, lists, etc.)."""
         structure_indicators = [
-            r'^#+\s',  # Markdown headers
-            r'^\d+\.\s',  # Numbered lists
-            r'^[-*]\s',  # Bullet points
-            r'^[A-Z][A-Z\s]+:',  # Section headers
+            r'^#+\s',  
+            r'^\d+\.\s',  
+            r'^[-*]\s',  
+            r'^[A-Z][A-Z\s]+:', 
         ]
         
         score = sum(1 for pattern in structure_indicators
@@ -411,21 +389,17 @@ class SmartEmbeddingGenerator:
         """Generate recommendations based on document analysis."""
         recommendations = []
         
-        # Check for empty documents
         if analysis['empty_documents'] > 0:
             recommendations.append(
                 f"Found {analysis['empty_documents']} empty documents. Consider filtering them out."
             )
         
-        # Check document length distribution
         if 'avg_length' in analysis:
             avg_len = analysis['avg_length']
             if avg_len < 100:
                 recommendations.append("Documents are very short. Consider merging related chunks.")
             elif avg_len > 2000:
                 recommendations.append("Documents are very long. Consider using smaller chunk sizes.")
-        
-        # Check content type distribution
         content_types = analysis['content_types']
         if content_types['academic'] > content_types['general']:
             recommendations.append("Predominantly academic content detected. Consider using academic-optimized preprocessing.")
@@ -456,22 +430,17 @@ class SmartEmbeddingGenerator:
             logger.info("Analyzing documents before embedding generation...")
             analysis = self.analyze_documents(documents)
             
-            # Log recommendations
             if analysis.get('recommendations'):
                 for rec in analysis['recommendations']:
                     logger.info(f"Recommendation: {rec}")
-        
-        # Generate embeddings
-        logger.info(f"Generating embeddings for {len(documents)} documents...")
+                logger.info(f"Generating embeddings for {len(documents)} documents...")
         
         try:
-            # Create FAISS vector store
             vector_store = FAISS.from_documents(
                 documents=documents,
                 embedding=self.embedder
             )
             
-            # Update statistics
             self.stats['total_documents'] += len(documents)
             if 'avg_length' in analysis:
                 self.stats['avg_document_length'] = analysis['avg_length']
@@ -523,12 +492,10 @@ class SmartEmbeddingGenerator:
         
         logger.info(f"Benchmarking with {len(sample_texts)} samples...")
         
-        # Single document embedding
         start_time = time.time()
         self.embedder.embed_query(sample_texts[0])
         single_time = time.time() - start_time
         
-        # Batch embedding
         start_time = time.time()
         self.embedder.embed_documents(sample_texts)
         batch_time = time.time() - start_time
@@ -545,7 +512,6 @@ class SmartEmbeddingGenerator:
         return results
 
 
-# Factory functions for easy initialization
 def create_embedder(
     model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
     device: Optional[str] = None,
@@ -567,13 +533,11 @@ def create_embedding_generator(
     return SmartEmbeddingGenerator(model_name=model_name, **kwargs)
 
 
-# Backward compatibility
 class EmbeddingGenerator(SmartEmbeddingGenerator):
     """Backward compatibility class."""
     
     def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
         super().__init__(model_name=model_name)
-        # Keep the old embedder reference
         self.embedder = self.embedder
 
     def generate(self, documents: List[Document]) -> FAISS:
@@ -581,7 +545,6 @@ class EmbeddingGenerator(SmartEmbeddingGenerator):
         return self.generate_simple(documents)
 
 
-# Backward compatibility - keep the old HuggingFaceEmbedder
 class HuggingFaceEmbedder(AdvancedHuggingFaceEmbedder):
     """Backward compatibility class."""
     

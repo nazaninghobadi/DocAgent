@@ -106,7 +106,6 @@ class DocumentChunker:
                 logger.warning(f"Unknown strategy '{strategy}', using 'recursive'")
                 chunks = self._chunk_with_splitter(documents, 'recursive', preserve_metadata)
             
-            # Update statistics
             self._update_stats(documents, chunks)
             
             logger.info(f"Created {len(chunks)} chunks from {len(documents)} documents")
@@ -128,10 +127,8 @@ class DocumentChunker:
         
         for i, doc in enumerate(documents):
             try:
-                # Split document
                 doc_chunks = splitter.split_documents([doc])
                 
-                # Add chunk metadata
                 for j, chunk in enumerate(doc_chunks):
                     if preserve_metadata:
                         # Preserve original metadata and add chunk info
@@ -163,20 +160,15 @@ class DocumentChunker:
         
         for i, doc in enumerate(documents):
             try:
-                # Detect document type and structure
                 doc_type = self._detect_document_type(doc)
                 
                 if doc_type == 'structured':
-                    # Use section-based chunking
                     doc_chunks = self._chunk_by_sections(doc)
                 elif doc_type == 'academic':
-                    # Use paragraph-based chunking
                     doc_chunks = self._chunk_by_paragraphs(doc)
                 else:
-                    # Fall back to recursive chunking
                     doc_chunks = self.splitters['recursive'].split_documents([doc])
                 
-                # Add metadata
                 for j, chunk in enumerate(doc_chunks):
                     if preserve_metadata:
                         chunk.metadata.update({
@@ -192,7 +184,6 @@ class DocumentChunker:
                     
             except Exception as e:
                 logger.error(f"Smart chunking failed for document {i}: {str(e)}")
-                # Fall back to recursive chunking
                 fallback_chunks = self.splitters['recursive'].split_documents([doc])
                 chunks.extend(fallback_chunks)
         
@@ -202,7 +193,6 @@ class DocumentChunker:
         """Detect document type based on content patterns."""
         content = doc.page_content
         
-        # Check for academic paper structure
         academic_patterns = [
             r'\babstract\b',
             r'\bintroduction\b',
@@ -215,7 +205,6 @@ class DocumentChunker:
         academic_score = sum(1 for pattern in academic_patterns 
                            if re.search(pattern, content, re.IGNORECASE))
         
-        # Check for structured document
         structured_patterns = [
             r'^#+\s',  # Markdown headers
             r'^\d+\.\s',  # Numbered sections
@@ -239,8 +228,7 @@ class DocumentChunker:
         
         chunks = []
         for section in sections:
-            if len(section.strip()) > 50:  # Minimum section size
-                # Further split if section is too large
+            if len(section.strip()) > 50: 
                 if len(section) > self.config.chunk_size:
                     sub_chunks = self.splitters['recursive'].split_text(section)
                     for sub_chunk in sub_chunks:
@@ -269,7 +257,6 @@ class DocumentChunker:
             if not paragraph:
                 continue
             
-            # Check if adding this paragraph would exceed chunk size
             if len(current_chunk) + len(paragraph) > self.config.chunk_size:
                 if current_chunk:
                     chunks.append(Document(
@@ -278,7 +265,6 @@ class DocumentChunker:
                     ))
                     current_chunk = paragraph
                 else:
-                    # Single paragraph is too large, split it
                     sub_chunks = self.splitters['recursive'].split_text(paragraph)
                     for sub_chunk in sub_chunks:
                         chunks.append(Document(
@@ -288,7 +274,6 @@ class DocumentChunker:
             else:
                 current_chunk += "\n\n" + paragraph if current_chunk else paragraph
         
-        # Add remaining content
         if current_chunk:
             chunks.append(Document(
                 page_content=current_chunk,
@@ -328,11 +313,9 @@ class DocumentChunker:
         if not documents:
             return self.config.chunk_size
         
-        # Calculate average document length
         doc_lengths = [len(doc.page_content) for doc in documents]
         avg_length = sum(doc_lengths) / len(doc_lengths)
         
-        # Suggest chunk size based on document characteristics
         if avg_length < 1000:
             suggested_size = 300
         elif avg_length < 5000:
@@ -403,7 +386,6 @@ class DocumentChunker:
         }
 
 
-# Factory function for easy initialization
 def create_chunker(
     chunk_size: int = 1000,
     chunk_overlap: int = 200,

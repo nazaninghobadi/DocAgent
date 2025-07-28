@@ -56,7 +56,6 @@ class ModelManager:
         logger.info("Model cache cleared")
 
 
-# Global model manager instance
 model_manager = ModelManager()
 
 
@@ -89,13 +88,11 @@ def search_knowledge(query: str, k: int = 3, score_threshold: Optional[float] = 
         if not results:
             return "[No relevant documents found]"
         
-        # Format results with metadata
         formatted_results = []
         for i, doc in enumerate(results, 1):
             content = doc.page_content.strip()
             metadata = doc.metadata
             
-            # Add result number and metadata info
             result_text = f"Result {i}:\n{content}"
             if metadata:
                 source = metadata.get('source', 'Unknown')
@@ -180,19 +177,16 @@ def create_summarize_tool(api_key: str, model_name: str = "mistralai/mistral-7b-
         if not query.strip():
             return "[Error: Empty query provided]"
         
-        # Validate summary length
         if summary_length not in ["short", "medium", "long"]:
             summary_length = "medium"
         
         try:
-            # Get relevant documents
             vector_manager = model_manager.get_vector_manager()
             docs = vector_manager.search(query, k=max_docs)
             
             if not docs:
                 return "[No relevant documents found for summarization]"
             
-            # Prepare context
             context_parts = []
             for i, doc in enumerate(docs, 1):
                 source = doc.metadata.get('source', f'Document {i}')
@@ -200,7 +194,6 @@ def create_summarize_tool(api_key: str, model_name: str = "mistralai/mistral-7b-
             
             context = "\n\n".join(context_parts)
             
-            # Create length-specific prompts
             length_prompts = {
                 "short": "Write a concise summary in 2-3 sentences",
                 "medium": "Write a comprehensive summary in 1-2 paragraphs",
@@ -215,14 +208,12 @@ Context:
 
 Summary:"""
             
-            # Generate summary
             llm_provider = model_manager.get_llm(api_key, model_name)
             llm = llm_provider.get_chat_model()
             
             response = llm.invoke(prompt)
             summary = response.content.strip()
             
-            # Add metadata
             metadata_info = f"\n\n[Summary based on {len(docs)} documents, Length: {summary_length}]"
             
             return summary + metadata_info
