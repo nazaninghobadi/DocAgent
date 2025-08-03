@@ -1,10 +1,3 @@
-# Smart Study Buddy
-AI assistant for summarizing and interacting with study documents.
-
-
-This is a prototype implementation of a document-based AI assistant using LangChain and OpenRouter API. It includes modules for loading, chunking, embedding, and answering queries.
-
----
 # 🧠 DocAgent
 
 **DocAgent** is a lightweight, modular document assistant powered by LangChain and OpenRouter. It allows you to semantically search and summarize educational or technical documents using cutting-edge language models like Mistral-7B.
@@ -55,7 +48,15 @@ export OPENROUTER_API_KEY=your-api-key
 ---
 
 
-## 👩‍💻 Author
+## 🙏 Thanks for Visiting
 
-[Nazanin Ghobadi](https://github.com/nazaninghobadi)
+Thank you for taking the time to explore this project.  
+If you have any questions, feedback, or ideas — feel free to reach out or open an issue.
+
+
+📬 Let’s connect and build something great!
+
+[![GitHub](https://img.shields.io/badge/GitHub-000?logo=github&logoColor=white)](https://github.com/nazaninghobadi)
+[![Telegram](https://img.shields.io/badge/Telegram-26A5E4?logo=telegram&logoColor=white)](https://t.me/your_telegram_username)
+[![Email](https://img.shields.io/badge/Email-D14836?logo=gmail&logoColor=white)](mailto:your.email@example.com)
 
